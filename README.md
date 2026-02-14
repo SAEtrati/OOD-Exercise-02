@@ -418,6 +418,46 @@ TicketState <|.. ClosedState
 
 ## 4️⃣ بخش چهارم: تحلیل شی‌گرا
 
+در این گام، نسخه اولیه سیستم از نظر اصول شی‌گرایی بررسی و با نسخه بازطراحی‌شده مقایسه شده است.
+
+### ۰- اصول مورد بررسی
+
+- **SRP** – Single Responsibility Principle  
+- **OCP** – Open/Closed Principle  
+- **LSP** – Liskov Substitution Principle  
+- **ISP** – Interface Segregation Principle  
+- **DIP** – Dependency Inversion Principle  
+- **PLK** – Principle of Least Knowledge (Law of Demeter)  
+- **CRP** – Common Reuse Principle  
+
+---
+
+### ۱- تحلیل SRP – اصل تک مسئولیتی
+
+---
+
+### ۲- تحلیل OCP – اصل باز/بسته بودن
+
+---
+
+### ۳- تحلیل LSP – اصل جایگزینی لیسکوف
+
+---
+
+### ۴- تحلیل ISP – اصل تفکیک اینترفیس
+
+---
+
+### ۵- تحلیل DIP – اصل وارونگی وابستگی
+
+---
+
+### ۶- تحلیل PLK – قانون کمترین دانش (Law of Demeter)
+
+---
+
+### ۷- تحلیل CRP – اصل استفاده‌ی مشترک (Common Reuse Principle)
+
 ---
 
 ## 5️⃣ بخش آخر: نتیجه‌گیری (اضافی)
