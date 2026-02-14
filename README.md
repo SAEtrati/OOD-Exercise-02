@@ -183,6 +183,222 @@
 ---
 ## 2️⃣ بخش دوم: ترسیم نمودار کلاس
 
+نمودار زیر، ساختار بازطراحی‌شده سیستم و محیط را با تمرکز بر الگوهای کلیدی اعمال‌شده نمایش می‌دهد.
+
+```mermaid
+classDiagram
+%% ---------- Enumerations ----------
+class Channel {
+  +EMAIL
+  +WEB
+  +SMS
+  +PORTAL
+}
+class TicketType {
+  +INCIDENT
+  +REQUEST
+  +QUESTION
+}
+class Priority {
+  +LOW
+  +MEDIUM
+  +HIGH
+  +CRITICAL
+}
+
+%% ---------- Domain classes (blue) ----------
+class Ticket {
+  +id : String
+  +title : String
+  +description : String
+  +type : TicketType
+  +priority : Priority
+  +createdAt : DateTime
+  +updatedAt : DateTime
+  +assignedTo : Agent
+  +department : Department
+  +state : TicketState
+  +comments : List<Comment>
+  +attachments : List<Attachment>
+  +metadata : Map<String,String>
+  +applyAction(action : String)
+  +changeState(next : TicketState)
+  +addComment(c : Comment)
+  +assignTo(a : Agent)
+  +getSummary() : String
+}
+
+class Customer {
+  +id : String
+  +name : String
+  +email : String
+  +phone : String
+}
+class Agent {
+  +id : String
+  +name : String
+  +email : String
+  +dept : Department
+  +ticketsAssigned : List<Ticket>
+  +acceptTicket(t : Ticket)
+  +resolveTicket(t : Ticket)
+}
+class Department {
+  +id : String
+  +name : String
+  +agents : List<Agent>
+  +addAgent(a : Agent)
+}
+class Comment {
+  +id : String
+  +text : String
+  +createdAt : DateTime
+  +author : Customer
+}
+class Attachment {
+  +id : String
+  +filename : String
+  +url : String
+  +size : long
+}
+class EventLog {
+  +id : String
+  +eventType : String
+  +details : String
+  +timestamp : DateTime
+}
+
+%% ---------- Factories / Repositories / Infra (green) ----------
+class TicketFactory {
+  +create(data : Map<String,String>, channel : Channel, customer : Customer) : Ticket
+  +createFromEmail(raw : String) : Ticket
+}
+class TicketRepository {
+  +save(t : Ticket)
+  +findById(id : String) : Ticket
+  +findByFilter(f : Map) : List<Ticket>
+  +update(t : Ticket)
+  +delete(id : String)
+}
+class DatabaseConnection {
+  -instance : DatabaseConnection
+  -connectionPool : Object
+  +getInstance() : DatabaseConnection
+  +getConnection() : Object
+}
+class ExternalApiFacade {
+  +sendEmail(to : String, subject : String, body : String)
+  +sendSms(to : String, body : String)
+  +pushPortalNotification(userId : String, body : String)
+}
+class TicketingFacade {
+  +submit(rawData : String, channel : Channel) : Ticket
+  +process(rawData : String, channel : Channel) : Ticket
+  +assignAndNotify(ticket : Ticket)
+  +transition(ticketId : String, action : String)
+}
+
+%% ---------- Logger ----------
+class Logger {
+  <<interface>>
+  +log(level : String, message : String)
+}
+class ConsoleLogger {
+  +log(level : String, message : String)
+}
+
+%% ---------- Strategies / Patterns ----------
+class InputHandlerStrategy {
+  <<interface>>
+  +handle(rawData : String) : Map<String,String>
+}
+class EmailInputHandler {
+  +handle(rawData : String) : Map<String,String>
+}
+class WebInputHandler {
+  +handle(rawData : String) : Map<String,String>
+}
+class AssignStrategy {
+  <<interface>>
+  +assign(t : Ticket) : Department
+}
+class DefaultAssignStrategy {
+  +assign(t : Ticket) : Department
+}
+class ResponseStrategy {
+  <<interface>>
+  +send(t : Ticket, message : String)
+}
+class EmailResponseStrategy {
+  +send(t : Ticket, message : String)
+}
+class SmsResponseStrategy {
+  +send(t : Ticket, message : String)
+}
+class PortalResponseStrategy {
+  +send(t : Ticket, message : String)
+}
+
+%% ---------- State pattern (ساده و خوانا) ----------
+class TicketState {
+  <<interface>>
+  +name : String
+  +enter(t : Ticket)
+  +exit(t : Ticket)
+  +next(action : String) : TicketState
+}
+class NewState {
+  +enter(t : Ticket)
+  +next(action : String) : TicketState
+}
+class AssignedState {
+  +enter(t : Ticket)
+  +next(action : String) : TicketState
+}
+class InProgressState {
+  +enter(t : Ticket)
+  +next(action : String) : TicketState
+}
+class ResolvedState {
+  +enter(t : Ticket)
+  +next(action : String) : TicketState
+}
+class ClosedState {
+  +enter(t : Ticket)
+  +next(action : String) : TicketState
+}
+
+%% ---------- Relationships ----------
+Ticket "1" o-- "1" Customer : createdBy
+Agent "1" o-- "1" Department : memberOf
+Department "1" o-- "*" Agent : employs
+Ticket "1" *-- "1" TicketState : currentState
+Ticket "1" o-- "*" Comment : has
+Ticket "1" o-- "*" Attachment : has
+TicketRepository ..> DatabaseConnection : uses
+TicketRepository "1" -- "*" Ticket : persists
+TicketFactory ..> Ticket : creates
+TicketingFacade ..> InputHandlerStrategy : uses
+TicketingFacade ..> TicketFactory : uses
+TicketingFacade ..> AssignStrategy : uses
+TicketingFacade ..> ResponseStrategy : uses
+TicketingFacade ..> TicketRepository : uses
+TicketingFacade ..> ExternalApiFacade : uses
+TicketingFacade ..> Logger : logs
+Logger <|.. ConsoleLogger
+InputHandlerStrategy <|.. EmailInputHandler
+InputHandlerStrategy <|.. WebInputHandler
+AssignStrategy <|.. DefaultAssignStrategy
+ResponseStrategy <|.. EmailResponseStrategy
+ResponseStrategy <|.. SmsResponseStrategy
+ResponseStrategy <|.. PortalResponseStrategy
+TicketState <|.. NewState
+TicketState <|.. AssignedState
+TicketState <|.. InProgressState
+TicketState <|.. ResolvedState
+TicketState <|.. ClosedState
+
+```
 
 ---
 
